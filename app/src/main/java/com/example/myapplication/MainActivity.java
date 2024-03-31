@@ -1,12 +1,16 @@
 package com.example.myapplication;
+import static android.content.ContentValues.TAG;
 import static java.util.Calendar.getInstance;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,11 +20,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView dayOfWeekTextViewToday_2;
     private TextView dayOfWeekTextViewToday_3;
     private TextView no_habit_msg;
+    EditText habit_name;
+    EditText description;
 
 
     @SuppressLint("MissingInflatedId")
@@ -46,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        habit_name = findViewById(R.id.habit_name);
+        description = findViewById(R.id.habit_description);
 
         habitRecyclerView = findViewById(R.id.habitRecyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -104,8 +119,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 showDialogAddHabit();
-
-                final int DESCRIPTION_HABIT_REQUEST_CODE = 1;
                 habitAdapter.setOnItemClickListener(new HabitAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(Habit habit) {
@@ -152,13 +165,15 @@ public class MainActivity extends AppCompatActivity {
 
         Button saveHabitName = dialog.findViewById(R.id.saveHabitButton);
         EditText habitName = dialog.findViewById(R.id.habit_name);
+        EditText habitDescription = dialog.findViewById(R.id.habit_description);
 
         saveHabitName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String habitNameText = habitName.getText().toString().trim();
+                String habitDescriptionText = habitDescription.getText().toString().trim();
                 if (!habitNameText.isEmpty()) {
-                    addHabit(habitNameText);
+                    addHabit(habitNameText, habitDescriptionText);
                     dialog.dismiss();
                 } else {
                     Toast.makeText(MainActivity.this, "Введите название привычки", Toast.LENGTH_SHORT).show();
@@ -170,11 +185,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-    private void addHabit(String habitName) {
+    private void addHabit(String habitName, String habitDescription) {
         Habit newHabit = new Habit(habitName);
         habitList.add(newHabit);
         habitAdapter.notifyDataSetChanged();
         updateDateVisibility();
+        MyDatabaseHelper myDB = new MyDatabaseHelper(MainActivity.this);
+        myDB.addHabit(habitName, habitDescription);
     }
 }

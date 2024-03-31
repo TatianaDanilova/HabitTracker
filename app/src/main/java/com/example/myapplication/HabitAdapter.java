@@ -39,6 +39,7 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.ViewHolder> 
                 if (listener != null) {
                     listener.onItemClick(habit);
                 }
+
             }
         });
     }
