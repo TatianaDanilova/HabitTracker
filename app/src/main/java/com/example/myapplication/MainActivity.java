@@ -3,6 +3,7 @@ import static java.util.Calendar.getInstance;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -24,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    private Button addHabitButton;
     private RecyclerView habitRecyclerView;
     private HabitAdapter habitAdapter;
     private List<Habit> habitList = new ArrayList<>();
@@ -34,7 +34,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView dateTextViewToday_1;
     private TextView dateTextViewToday_2;
     private TextView dateTextViewToday_3;
+    private TextView dayOfWeekTextViewToday;
+    private TextView dayOfWeekTextViewToday_1;
+    private TextView dayOfWeekTextViewToday_2;
+    private TextView dayOfWeekTextViewToday_3;
+    private TextView no_habit_msg;
 
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,25 +57,46 @@ public class MainActivity extends AppCompatActivity {
         Button show = findViewById(R.id.addHabitButton);
         dialog = new Dialog(MainActivity.this);
 
+        no_habit_msg = findViewById(R.id.no_habit_msg);
+
         // Инициализация TextView
         dateTextViewToday = findViewById(R.id.date_today);
         dateTextViewToday_1 = findViewById(R.id.date_today_1);
         dateTextViewToday_2 = findViewById(R.id.date_today_2);
         dateTextViewToday_3 = findViewById(R.id.date_today_3);
 
-        // Получите текущую дату
-        Calendar calendar = Calendar.getInstance();
+        dayOfWeekTextViewToday = findViewById(R.id.dayOfWeekTextViewToday);
+        dayOfWeekTextViewToday_1 = findViewById(R.id.dayOfWeekTextViewToday_1);
+        dayOfWeekTextViewToday_2 = findViewById(R.id.dayOfWeekTextViewToday_2);
+        dayOfWeekTextViewToday_3 = findViewById(R.id.dayOfWeekTextViewToday_3);
+
+        Calendar calendar;
+        calendar = Calendar.getInstance();
         DateFormat dateFormat = new SimpleDateFormat("dd", Locale.getDefault());
         String currentDate = dateFormat.format(calendar.getTime());
-        String currentDate_1 = String.valueOf(Integer.parseInt(dateFormat.format(calendar.getTime())) - 1);
-        String currentDate_2 = String.valueOf(Integer.parseInt(dateFormat.format(calendar.getTime())) - 2);
-        String currentDate_3 = String.valueOf(Integer.parseInt(dateFormat.format(calendar.getTime())) - 3);
 
-        // Установите текущую дату в TextView
         dateTextViewToday.setText(currentDate);
-        dateTextViewToday_1.setText(currentDate_1);
-        dateTextViewToday_2.setText(currentDate_2);
-        dateTextViewToday_3.setText(currentDate_3);
+
+        DateFormat dayOfWeekFormat = new SimpleDateFormat("EE", Locale.getDefault());
+        String dayOfWeek = dayOfWeekFormat.format(calendar.getTime());
+
+        dayOfWeekTextViewToday.setText(dayOfWeek);
+
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        dateTextViewToday_1.setText(dateFormat.format(calendar.getTime()));
+        dayOfWeek = dayOfWeekFormat.format(calendar.getTime());
+        dayOfWeekTextViewToday_1.setText(dayOfWeek);
+
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        dateTextViewToday_2.setText(dateFormat.format(calendar.getTime()));
+        dayOfWeek = dayOfWeekFormat.format(calendar.getTime());
+        dayOfWeekTextViewToday_2.setText(dayOfWeek);
+
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        dateTextViewToday_3.setText(dateFormat.format(calendar.getTime()));
+        dayOfWeek = dayOfWeekFormat.format(calendar.getTime());
+        dayOfWeekTextViewToday_3.setText(dayOfWeek);
+
 
         updateDateVisibility();
 
@@ -76,6 +104,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 showDialogAddHabit();
+
+                final int DESCRIPTION_HABIT_REQUEST_CODE = 1;
+                habitAdapter.setOnItemClickListener(new HabitAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Habit habit) {
+                        Intent intent = new Intent(MainActivity.this, DescriptionHabitActivity.class);
+                        // Передача значения habit.getName() через интент
+                        intent.putExtra("habitName", habit.getName());
+                        // Запуск новой активити
+                        startActivity(intent);
+                    }
+                });
             }
         });
     }
@@ -87,11 +127,21 @@ public class MainActivity extends AppCompatActivity {
             dateTextViewToday_1.setVisibility(View.VISIBLE);
             dateTextViewToday_2.setVisibility(View.VISIBLE);
             dateTextViewToday_3.setVisibility(View.VISIBLE);
+            dayOfWeekTextViewToday.setVisibility(View.VISIBLE);
+            dayOfWeekTextViewToday_1.setVisibility(View.VISIBLE);
+            dayOfWeekTextViewToday_2.setVisibility(View.VISIBLE);
+            dayOfWeekTextViewToday_3.setVisibility(View.VISIBLE);
+            no_habit_msg.setVisibility(View.GONE);
         } else {
             dateTextViewToday.setVisibility(View.GONE);
             dateTextViewToday_1.setVisibility(View.GONE);
             dateTextViewToday_2.setVisibility(View.GONE);
             dateTextViewToday_3.setVisibility(View.GONE);
+            dayOfWeekTextViewToday.setVisibility(View.GONE);
+            dayOfWeekTextViewToday_1.setVisibility(View.GONE);
+            dayOfWeekTextViewToday_2.setVisibility(View.GONE);
+            dayOfWeekTextViewToday_3.setVisibility(View.GONE);
+            no_habit_msg.setVisibility(View.VISIBLE);
         }
     }
 
@@ -118,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
     }
+
+
 
     private void addHabit(String habitName) {
         Habit newHabit = new Habit(habitName);
